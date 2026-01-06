@@ -1,0 +1,970 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Himachal Pradesh Bus Pass System | Mandi Division</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --primary: #2ecc71;       /* HRTC Greenish */
+            --primary-dark: #27ae60;
+            --secondary: #3498db;     /* River Blue */
+            --accent: #f1c40f;        /* Sun Yellow */
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --glass-card: rgba(255, 255, 255, 0.7);
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --gradient: linear-gradient(135deg, #2ecc71 0%, #3498db 100%);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: #f4f7f6;
+            color: var(--dark);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            padding-top: 70px; /* Space for fixed navbar */
+        }
+
+        /* =========================================
+           2. ANIMATIONS
+           ========================================= */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+
+        /* =========================================
+           3. RESPONSIVE NAVIGATION
+           ========================================= */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 0.8rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: 70px;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1002;
+        }
+        
+        .logo i { color: var(--secondary); font-size: 1.6rem; }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            font-weight: 500;
+            position: relative;
+            color: var(--dark);
+            transition: var(--transition);
+        }
+
+        .nav-item:hover { color: var(--primary); }
+        .nav-item::after {
+            content: ''; position: absolute; width: 0; height: 2px;
+            bottom: -5px; left: 0; background: var(--gradient);
+            transition: var(--transition);
+        }
+        .nav-item:hover::after { width: 100%; }
+
+        .btn-nav {
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            background: var(--gradient);
+            color: white;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn-nav:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            z-index: 1002;
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        /* Mobile Nav Overlay */
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 70%;
+                height: 100vh;
+                background: white;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+                transition: 0.4s ease-in-out;
+                z-index: 1001;
+            }
+
+            .nav-links.active { right: 0; }
+            
+            #authButtons { display: none; } /* Hide auth button in header on mobile, move to menu */
+            .nav-auth-mobile { display: block; margin-top: 1rem; }
+        }
+
+        /* =========================================
+           4. VIEW MANAGEMENT (SPA Logic)
+           ========================================= */
+        .view-section { display: none; min-height: calc(100vh - 70px); }
+        .view-section.active { display: block; animation: fadeIn 0.5s ease; }
+
+        /* =========================================
+           5. HERO SECTION (Landing)
+           ========================================= */
+        .hero {
+            position: relative;
+            min-height: 90vh; /* Changed from 100vh for mobile address bar safety */
+            background: url('https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            margin-top: -70px;
+            padding: 2rem;
+        }
+
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+        }
+
+        .hero-content { position: relative; z-index: 2; max-width: 800px; width: 100%; }
+        
+        .hero-title { 
+            font-size: clamp(2rem, 5vw, 4rem); /* Responsive Font Size */
+            font-weight: 800; 
+            margin-bottom: 1rem; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle { 
+            font-size: clamp(1rem, 3vw, 1.5rem); 
+            margin-bottom: 2rem; 
+            opacity: 0.9; 
+        }
+        
+        .glass-stats {
+            display: flex; gap: 2rem; justify-content: center; margin-top: 3rem; flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+            padding: 1.5rem; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2);
+            width: 140px; flex-grow: 1; max-width: 200px;
+        }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--accent); }
+
+        /* =========================================
+           6. AUTH SECTION (Login/Signup)
+           ========================================= */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 70px);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1rem;
+        }
+
+        .auth-box {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            min-height: 550px;
+            display: flex;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .auth-left {
+            flex: 1;
+            background: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .auth-left::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
+        .auth-text { position: relative; z-index: 2; }
+
+        .auth-right {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header { margin-bottom: 2rem; }
+        .form-header h2 { font-size: 2rem; color: var(--dark); margin-bottom: 0.5rem; }
+
+        .input-group { position: relative; margin-bottom: 1.5rem; }
+        .input-group i { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--secondary); }
+        .input-group input, .input-group select {
+            width: 100%; padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd; border-radius: 10px; outline: none; transition: var(--transition);
+            background: #f9f9f9;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        .input-group input:focus { border-color: var(--secondary); background: white; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+
+        .auth-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--gradient); color: white; font-weight: 600; cursor: pointer; font-size: 1rem;}
+        .switch-auth { text-align: center; margin-top: 1rem; font-size: 0.9rem; cursor: pointer; color: var(--secondary); }
+
+        /* Mobile Auth Adjustments */
+        @media (max-width: 768px) {
+            .auth-box { flex-direction: column; height: auto; min-height: auto; }
+            .auth-left { display: none; }
+            .auth-right { padding: 1.5rem; }
+        }
+
+        /* =========================================
+           7. DASHBOARD SECTION
+           ========================================= */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid #eee;
+            padding: 2rem 1rem;
+            height: 100%;
+        }
+
+        .user-profile-mini {
+            text-align: center; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #eee;
+        }
+        .user-avatar {
+            width: 80px; height: 80px; background: var(--secondary); border-radius: 50%;
+            margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem;
+        }
+
+        .menu-item {
+            padding: 1rem; border-radius: 10px; cursor: pointer; color: #7f8c8d;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+        .menu-item:hover, .menu-item.active { background: #f0fdf4; color: var(--primary); }
+
+        .dash-content { padding: 2rem; background: #f8fafc; overflow-y: auto; }
+        .content-card { display: none; animation: fadeIn 0.4s ease; }
+        .content-card.active { display: block; }
+
+        /* Mobile Dashboard Adjustments */
+        @media (max-width: 768px) {
+            .dashboard-container { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+            .sidebar { 
+                height: auto; 
+                padding: 1rem; 
+                overflow-x: auto; 
+                display: flex; 
+                gap: 10px; 
+                border-bottom: 1px solid #eee; 
+                white-space: nowrap;
+                order: -1; /* Sidebar on top */
+                -ms-overflow-style: none; /* Hide scrollbar IE */
+                scrollbar-width: none; /* Hide scrollbar Firefox */
+            }
+            .sidebar::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
+            
+            .user-profile-mini { display: none; } /* Hide profile pic in mobile header to save space */
+            .menu-item { margin-bottom: 0; flex: 0 0 auto; border: 1px solid #eee; padding: 0.8rem 1.2rem; }
+            .menu-item.active { border-color: var(--primary); }
+            
+            .dash-content { padding: 1rem; }
+        }
+
+        /* Pass Card Design */
+        .pass-application-form {
+            background: white; padding: 2rem; border-radius: 15px; box-shadow: var(--shadow); width: 100%; max-width: 800px;
+        }
+        
+        /* Responsive Grid for Form */
+        .form-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+        }
+        @media(max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .pass-application-form { padding: 1.5rem; }}
+
+        .digital-pass {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            min-height: 550px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+            margin: 0 auto;
+            border: 1px solid #eee;
+        }
+        
+        .pass-header {
+            background: var(--gradient); padding: 1.5rem; color: white; text-align: center;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        
+        .pass-photo {
+            width: 120px; height: 120px; border-radius: 50%; border: 4px solid white;
+            margin: -60px auto 10px; overflow: hidden; background: #eee; position: relative; z-index: 2;
+        }
+        .pass-photo img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .pass-body { padding: 1rem 2rem; text-align: center; }
+        .pass-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; text-align: left; border-bottom: 1px dashed #eee; padding-bottom: 5px;}
+        .pass-label { color: #7f8c8d; font-size: 0.8rem; }
+        .pass-value { font-weight: 600; color: var(--dark); }
+        
+        .qr-area { margin-top: 1rem; }
+        .validity-badge {
+            background: #dcfce7; color: #166534; padding: 5px 15px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 1rem;
+        }
+
+        /* =========================================
+           8. FOOTER (Detailed)
+           ========================================= */
+        footer {
+            background: #1e293b; color: #94a3b8; padding: 4rem 5% 1rem; margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem; margin-bottom: 3rem;
+        }
+
+        .footer-col h3 { color: white; margin-bottom: 1.5rem; position: relative; display: inline-block; }
+        .footer-col h3::after {
+            content: ''; position: absolute; left: 0; bottom: -5px; width: 40px; height: 3px; background: var(--primary);
+        }
+
+        .footer-links li { list-style: none; margin-bottom: 0.8rem; }
+        .footer-links a { color: #94a3b8; text-decoration: none; transition: 0.3s; }
+        .footer-links a:hover { color: var(--primary); padding-left: 5px; }
+
+        .contact-info li { display: flex; gap: 10px; margin-bottom: 1rem; align-items: flex-start; }
+
+        .bottom-bar {
+            border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; text-align: center;
+        }
+        
+        @media(max-width: 600px) { .bottom-bar { justify-content: center; } }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-bus-alt"></i>
+            <div>
+                <span style="display:block; line-height:1;">Himachal Transport</span>
+                <span style="font-size: 0.7rem; font-weight: 400; color: #777;">Mandi Division</span>
+            </div>
+        </div>
+        
+        <div class="hamburger" onclick="app.toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <ul class="nav-links" id="publicNav">
+            <li class="nav-item" onclick="app.router('home'); app.toggleMenu()">Home</li>
+            <li class="nav-item" onclick="app.router('routes'); app.toggleMenu()">Routes</li>
+            <li class="nav-item" onclick="app.router('help'); app.toggleMenu()">Help</li>
+            
+            <li class="nav-item nav-auth-mobile" style="display: none;" onclick="app.router('auth'); app.toggleMenu()">Sign In</li>
+        </ul>
+
+        <div id="authButtons">
+            <button class="btn-nav" onclick="app.router('auth')">Sign In</button>
+        </div>
+    </nav>
+
+    <section id="home-view" class="view-section active">
+        <div class="hero">
+            <div class="hero-content">
+                <div style="background: rgba(46, 204, 113, 0.2); backdrop-filter: blur(5px); display: inline-block; padding: 5px 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fas fa-check-circle"></i> Online Applications Open 2024
+                </div>
+                <h1 class="hero-title">Travel Smart in <br><span style="color: var(--primary);">Dev Bhumi</span></h1>
+                <p class="hero-subtitle">Manage your daily commute passes for Mandi, Sundernagar, and Kamand routes effortlessly.</p>
+                <button class="btn-nav" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="app.router('auth')">Get Your Pass Now</button>
+                
+                <div class="glass-stats">
+                    <div class="stat-box">
+                        <div class="stat-number">12k+</div>
+                        <div>Daily Riders</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">45</div>
+                        <div>Local Routes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">100%</div>
+                        <div>Digital</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 4rem 5%; background: white;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: clamp(1.8rem, 4vw, 2.5rem); color: var(--dark); margin-bottom: 1rem;">Why Choose Digital Pass?</h2>
+                <div style="width: 60px; height: 4px; background: var(--primary); margin: 0 auto;"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                <div style="padding: 2rem; border-radius: 15px; background: #f9f9f9; text-align: center; transition: 0.3s;" onmouseover="this.style.transform='translateY(-10px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-qrcode" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                    <h3>QR Integration</h3>
+                    <p style="color: #666;">Scan and go. No need to carry physical paper passes anymore.</p>
+                </div>
+                <div style="padding: 2rem; border-radius: 15px; background: #f9f9f9; text-align: center; transition: 0.3s;" onmouseover="this.style.transform='translateY(-10px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-wallet" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Cost Effective</h3>
+                    <p style="color: #666;">Get up to 60% concession for students and government employees.</p>
+                </div>
+                <div style="padding: 2rem; border-radius: 15px; background: #f9f9f9; text-align: center; transition: 0.3s;" onmouseover="this.style.transform='translateY(-10px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <i class="fas fa-route" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></i>
+                    <h3>Mandi Coverage</h3>
+                    <p style="color: #666;">Covers all major routes: ISBT, IIT Kamand, Rewalsar, Nerchowk.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="auth-view" class="view-section">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-left">
+                    <div class="auth-text">
+                        <h2>Welcome to Mandi</h2>
+                        <p>Join thousands of daily commuters enjoying hassle-free travel.</p>
+                    </div>
+                </div>
+                <div class="auth-right">
+                    <form id="loginForm">
+                        <div class="form-header">
+                            <h2>Sign In</h2>
+                            <p style="color: #999;">Access your dashboard</p>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="loginEmail" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPass" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="auth-btn">Login</button>
+                        <p class="switch-auth" onclick="auth.toggleForm('signup')">New User? Create Account</p>
+                    </form>
+
+                    <form id="signupForm" style="display: none;">
+                        <div class="form-header">
+                            <h2>Register</h2>
+                            <p style="color: #999;">Apply for a new pass id</p>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="regName" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="regEmail" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="regPass" placeholder="Create Password" required>
+                        </div>
+                        <button type="submit" class="auth-btn" style="background: var(--secondary);">Sign Up</button>
+                        <p class="switch-auth" onclick="auth.toggleForm('login')">Already have an account? Login</p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboard-view" class="view-section">
+        <div class="dashboard-container">
+            <div class="sidebar">
+                <div class="user-profile-mini">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <h3 id="dashUserName">User Name</h3>
+                    <p style="font-size: 0.8rem; color: #999;">Student / Commuter</p>
+                </div>
+                <div class="menu-item active" onclick="dashboard.showTab('apply')">
+                    <i class="fas fa-plus-circle"></i> Apply
+                </div>
+                <div class="menu-item" onclick="dashboard.showTab('view')">
+                    <i class="fas fa-id-card"></i> View Pass
+                </div>
+                <div class="menu-item" onclick="dashboard.showTab('history')">
+                    <i class="fas fa-history"></i> History
+                </div>
+                <div class="menu-item" onclick="auth.logout()" style="color: #e74c3c; margin-top: auto;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <div class="dash-content">
+                
+                <div id="tab-apply" class="content-card active">
+                    <h2 style="margin-bottom: 1.5rem;">New Pass Application</h2>
+                    <div class="pass-application-form">
+                        <form id="passForm">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">From Location</label>
+                                    <select id="passFrom" required>
+                                        <option value="">Select Origin</option>
+                                        <option value="Mandi ISBT">Mandi ISBT</option>
+                                        <option value="Sundernagar">Sundernagar</option>
+                                        <option value="Nerchowk">Nerchowk</option>
+                                        <option value="Pandoh">Pandoh</option>
+                                        <option value="Rewalsar">Rewalsar</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">To Destination</label>
+                                    <select id="passTo" required>
+                                        <option value="">Select Destination</option>
+                                        <option value="IIT Mandi (Kamand)">IIT Mandi (Kamand)</option>
+                                        <option value="Mandi ISBT">Mandi ISBT</option>
+                                        <option value="Govt College Mandi">Govt College Mandi</option>
+                                        <option value="Kullu">Kullu</option>
+                                        <option value="Shimla">Shimla</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Pass Category</label>
+                                <select id="passType" required>
+                                    <option value="Student">Student (60% Off)</option>
+                                    <option value="Employee">Govt. Employee (30% Off)</option>
+                                    <option value="General">General Public</option>
+                                    <option value="Senior">Senior Citizen</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Validity Duration</label>
+                                <select id="passDuration" required>
+                                    <option value="1 Month">1 Month</option>
+                                    <option value="3 Months">3 Months</option>
+                                    <option value="6 Months">6 Months</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Upload Photo ID</label>
+                                <input type="file" style="padding: 10px;">
+                            </div>
+
+                            <button type="submit" class="btn-nav" style="width: 100%;">Submit & Generate</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="tab-view" class="content-card">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2>Your Active Digital Pass</h2>
+                        <p>Show this QR code to the conductor</p>
+                    </div>
+                    
+                    <div id="passRenderArea">
+                        <div style="text-align: center; padding: 3rem; color: #999;">
+                            <i class="fas fa-ticket-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>No Active Pass Found. Please Apply first.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn-nav" onclick="window.print()"><i class="fas fa-download"></i> Download PDF</button>
+                    </div>
+                </div>
+
+                 <div id="tab-history" class="content-card">
+                    <h2>Application History</h2>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; background: white; border-radius: 10px; min-width: 500px;">
+                            <tr style="background: #eee; text-align: left;">
+                                <th style="padding: 1rem;">ID</th>
+                                <th style="padding: 1rem;">Route</th>
+                                <th style="padding: 1rem;">Date</th>
+                                <th style="padding: 1rem;">Status</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">#HP01-992</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Mandi - Kamand</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;">Oct 12, 2025</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid #eee;"><span style="color: green;">Active</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                 </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h3>Mandi Transport</h3>
+                <p>Dedicated to providing safe, reliable, and comfortable bus services across the beautiful valleys of Himachal Pradesh.</p>
+                <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                    <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-twitter"></i></a>
+                    <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Apply for Pass</a></li>
+                    <li><a href="#">Renew Pass</a></li>
+                    <li><a href="#">Route Map</a></li>
+                    <li><a href="#">Bus Timings</a></li>
+                    <li><a href="#">Fare Calculator</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3>Popular Routes</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Mandi ISBT -> IIT Kamand</a></li>
+                    <li><a href="#">Mandi -> Sundernagar</a></li>
+                    <li><a href="#">Mandi -> Manali</a></li>
+                    <li><a href="#">Mandi -> Dharamshala</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3>Contact Us</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> Regional Office, HRTC Complex, Mandi, HP 175001</li>
+                    <li><i class="fas fa-phone" style="color: var(--primary);"></i> +91 1905-223456</li>
+                    <li><i class="fas fa-envelope" style="color: var(--primary);"></i> helpdesk@hrtcmandi.com</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="bottom-bar">
+            <p>&copy; 2025 Himachal Pradesh Road Transport Corp. All rights reserved.</p>
+            <p>Developed for MCA Project.</p>
+        </div>
+    </footer>
+
+    <script>
+        /* =========================================
+           DATABASE SIMULATION (LocalStorage)
+           ========================================= */
+        class Database {
+            constructor() {
+                this.users = JSON.parse(localStorage.getItem('bus_users')) || [];
+                this.currentUser = JSON.parse(localStorage.getItem('bus_current_user')) || null;
+                this.passes = JSON.parse(localStorage.getItem('bus_passes')) || [];
+            }
+
+            saveUser(user) {
+                this.users.push(user);
+                localStorage.setItem('bus_users', JSON.stringify(this.users));
+            }
+
+            findUser(email, password) {
+                return this.users.find(u => u.email === email && u.password === password);
+            }
+
+            savePass(pass) {
+                this.passes.push(pass);
+                localStorage.setItem('bus_passes', JSON.stringify(this.passes));
+            }
+
+            getPassByEmail(email) {
+                // Get the latest pass
+                return this.passes.filter(p => p.userEmail === email).pop();
+            }
+
+            setCurrentUser(user) {
+                this.currentUser = user;
+                localStorage.setItem('bus_current_user', JSON.stringify(user));
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('bus_current_user');
+            }
+        }
+
+        const db = new Database();
+
+        /* =========================================
+           APP LOGIC
+           ========================================= */
+        const app = {
+            init: function() {
+                this.checkSession();
+                // Add event listeners
+                document.getElementById('loginForm').addEventListener('submit', auth.handleLogin);
+                document.getElementById('signupForm').addEventListener('submit', auth.handleSignup);
+                document.getElementById('passForm').addEventListener('submit', dashboard.handlePassSubmit);
+            },
+
+            toggleMenu: function() {
+                const nav = document.querySelector('.nav-links');
+                nav.classList.toggle('active');
+            },
+
+            router: function(route) {
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                
+                // Show requested view
+                if (route === 'home') document.getElementById('home-view').classList.add('active');
+                if (route === 'auth') document.getElementById('auth-view').classList.add('active');
+                if (route === 'dashboard') {
+                     if (!db.currentUser) {
+                         alert("Please login first!");
+                         this.router('auth');
+                         return;
+                     }
+                     document.getElementById('dashboard-view').classList.add('active');
+                     dashboard.loadProfile();
+                }
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            },
+
+            checkSession: function() {
+                const navLinks = document.querySelector('.nav-links');
+                const authBtns = document.getElementById('authButtons');
+                const mobileAuth = document.querySelector('.nav-auth-mobile');
+
+                if (db.currentUser) {
+                    authBtns.innerHTML = `<button class="btn-nav" onclick="app.router('dashboard')">Dashboard</button>`;
+                    // For mobile menu text update
+                    mobileAuth.style.display = 'block';
+                    mobileAuth.innerText = "Dashboard";
+                    mobileAuth.onclick = function() { app.router('dashboard'); app.toggleMenu(); };
+                } else {
+                    authBtns.innerHTML = `<button class="btn-nav" onclick="app.router('auth')">Sign In</button>`;
+                    mobileAuth.style.display = 'block';
+                    mobileAuth.innerText = "Sign In";
+                    mobileAuth.onclick = function() { app.router('auth'); app.toggleMenu(); };
+                }
+            }
+        };
+
+        /* =========================================
+           AUTH MODULE
+           ========================================= */
+        const auth = {
+            toggleForm: function(type) {
+                if (type === 'signup') {
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('signupForm').style.display = 'block';
+                    document.getElementById('signupForm').style.animation = 'fadeIn 0.5s';
+                } else {
+                    document.getElementById('signupForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('loginForm').style.animation = 'fadeIn 0.5s';
+                }
+            },
+
+            handleSignup: function(e) {
+                e.preventDefault();
+                const name = document.getElementById('regName').value;
+                const email = document.getElementById('regEmail').value;
+                const pass = document.getElementById('regPass').value;
+
+                if (db.users.find(u => u.email === email)) {
+                    alert("User already exists!");
+                    return;
+                }
+
+                const newUser = { name, email, password: pass };
+                db.saveUser(newUser);
+                alert("Registration Successful! Please Login.");
+                auth.toggleForm('login');
+            },
+
+            handleLogin: function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const pass = document.getElementById('loginPass').value;
+
+                const user = db.findUser(email, pass);
+                if (user) {
+                    db.setCurrentUser(user);
+                    app.checkSession();
+                    app.router('dashboard');
+                } else {
+                    alert("Invalid Credentials!");
+                }
+            },
+
+            logout: function() {
+                db.logout();
+                app.checkSession();
+                app.router('home');
+            }
+        };
+
+        /* =========================================
+           DASHBOARD MODULE
+           ========================================= */
+        const dashboard = {
+            loadProfile: function() {
+                document.getElementById('dashUserName').innerText = db.currentUser.name;
+                this.renderPass();
+            },
+
+            showTab: function(tabName) {
+                // Hide all tabs
+                document.querySelectorAll('.content-card').forEach(el => el.classList.remove('active'));
+                // Show selected
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+                
+                // Update sidebar active state
+                const items = document.querySelectorAll('.menu-item');
+                items.forEach(i => i.classList.remove('active'));
+                
+                // Note: Indexing relies on DOM order. 
+                // 1=Apply, 2=View, 3=History
+                if(tabName === 'apply') items[1].classList.add('active');
+                if(tabName === 'view') items[2].classList.add('active');
+                if(tabName === 'history') items[3].classList.add('active');
+            },
+
+            handlePassSubmit: function(e) {
+                e.preventDefault();
+                
+                // Collect Data
+                const from = document.getElementById('passFrom').value;
+                const to = document.getElementById('passTo').value;
+                const type = document.getElementById('passType').value;
+                const duration = document.getElementById('passDuration').value;
+
+                // Create Pass Object
+                const newPass = {
+                    id: 'HP-' + Math.floor(Math.random() * 100000),
+                    userEmail: db.currentUser.email,
+                    userName: db.currentUser.name,
+                    from, to, type, duration,
+                    expiry: new Date(new Date().setMonth(new Date().getMonth() + parseInt(duration))).toLocaleDateString()
+                };
+
+                db.savePass(newPass);
+                alert("Pass Generated Successfully!");
+                document.getElementById('passForm').reset();
+                dashboard.renderPass();
+                dashboard.showTab('view');
+            },
+
+            renderPass: function() {
+                const pass = db.getPassByEmail(db.currentUser.email);
+                const container = document.getElementById('passRenderArea');
+
+                if (pass) {
+                    // QR Code API (using goqr.me for demo)
+                    const qrData = `PassID:${pass.id}|User:${pass.userName}|Valid:${pass.expiry}`;
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
+
+                    container.innerHTML = `
+                        <div class="digital-pass">
+                            <div class="pass-header">
+                                <h3>Himachal Transport</h3>
+                                <p style="font-size: 0.8rem; opacity: 0.9;">Mandi Division E-Pass</p>
+                            </div>
+                            <div class="pass-photo">
+                                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" alt="User">
+                            </div>
+                            <div class="pass-body">
+                                <h2 style="color: var(--dark); margin-bottom: 5px;">${pass.userName}</h2>
+                                <span class="validity-badge">${pass.type} Pass</span>
+                                
+                                <div class="pass-row">
+                                    <span class="pass-label">Pass ID</span>
+                                    <span class="pass-value">${pass.id}</span>
+                                </div>
+                                <div class="pass-row">
+                                    <span class="pass-label">Route</span>
+                                    <span class="pass-value">${pass.from} <i class="fas fa-arrow-right" style="font-size:0.7rem"></i> ${pass.to}</span>
+                                </div>
+                                <div class="pass-row">
+                                    <span class="pass-label">Valid Until</span>
+                                    <span class="pass-value" style="color: #e74c3c;">${pass.expiry}</span>
+                                </div>
+                                
+                                <div class="qr-area">
+                                    <img src="${qrUrl}" alt="QR Code" width="100">
+                                    <p style="font-size: 0.7rem; color: #999; margin-top: 5px;">Scan to Verify</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
